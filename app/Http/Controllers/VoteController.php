@@ -5,15 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\Movie;
 use App\Models\Vote;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class VoteController extends Controller
 {
     public function vote(Request $request, Movie $movie)
     {
-        if ($movie->user_id === auth()->id()) {
-            return back()->withErrors('You cannot vote for your own movie.');
-        }
-
         $request->validate([
             'vote' => 'required|in:like,hate',
         ]);
@@ -35,6 +32,8 @@ class VoteController extends Controller
                 'vote' => $request->vote,
             ]);
         }
+
+        Cache::put('user_vote_' . auth()->id() . '_' . $movie->id, $request->vote, now()->addDay());
 
         return back();
     }

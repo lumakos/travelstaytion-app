@@ -4,79 +4,58 @@
     <div
         class="sm:justify-center sm:max-w-2xl mt-6 px-6 py-6 bg-white shadow rounded-lg min-h-screen justify-center mx-auto">
         <div class="flex justify-between items-center mb-4">
-            <h1 class="text-4xl font-bold">Movie World</h1>
+            <h1 class="text-4xl font-bold"><a href="{{ route('movies.index') }}">Movie World</a></h1>
 
-            <div class="authentication">
+            <div class="authentication flex justify-between items-center">
                 @guest
-                    <a href="{{ route('login') }}" class="text-blue-500 hover:underline">Log in</a> or
-                    <a href="{{ route('register') }}" class="text-blue-500 hover:underline">Sign Up</a>
+                    <p><a href="{{ route('login') }}" class="text-blue-500 font-semibold">Log in </a></p>
+                    <p class="ml-1 mr-1">or</p>
+                    <p><a href="{{ route('register') }}" class="px-4 py-2 border border-blue-500 text-white font-semibold rounded-xl outline outline-2 outline-blue-700 bg-blue-500 hover:bg-blue-600 transition">Sign Up</a></p>
                 @else
-                    Welcome Back {{ auth()->user()->name }}
-                    <form method="POST" action="{{ route('logout') }}" class="inline">
-                        @csrf
-                        <button type="submit" class="text-red-500">Logout</button>
-                    </form>
+                    Welcome Back <p class="ml-2 text-blue-600">{{ auth()->user()->name }}</p>
                 @endguest
             </div>
         </div>
-        <div>
-            Found 200 movies
-        </div>
+
+        <div class="font-semibold">Found {{$total_movies}} movies</div>
 
         <div class="flex">
             <div class="w-4/5">
-                <ul class="mt-4">
-                    @foreach ($movies as $movie)
-                        <li class="p-4 bg-gray-100 rounded shadow">
-                            <div class="flex justify-between items-center">
-                                <h2 class="text-xl font-semibold">{{ $movie->title }}</h2>
-                                <p class="text-gray-600 text-sm">Posted {{ \Carbon\Carbon::parse($movie->created_at)->format('d/m/Y') }}</p>
-                            </div>
-
-                            <p class="text-gray-600">{{ $movie->description }}</p>
-
-                            <div class="mt-4 flex justify-between items-center">
-                                <p>{{ $movie->likes }} likes | {{ $movie->hates }} hates</p>
-                                @auth
-                                    @if ($movie->user_id !== auth()->id())
-                                        <form action="{{ route('movies.vote', $movie->id) }}" method="POST">
-                                            @csrf
-                                            <input type="hidden" name="vote" value="like">
-                                            <button type="submit" class="px-2 py-1 rounded">Like</button>
-                                        </form>
-                                        |
-                                        <form action="{{ route('movies.vote', $movie->id) }}" method="POST">
-                                            @csrf
-                                            <input type="hidden" name="vote" value="hate">
-                                            <button type="submit" class="px-2 py-1 rounded">Hate</button>
-                                        </form>
-                                    @endif
-                                @endauth
-                                <p class="text-sm text-gray-500">
-                                    Posted by
-                                    <a href="#" class="text-blue-600">
-                                        @if(auth()->check() && $movie->user->email == auth()->user()->email)
-                                            You
-                                        @else
-                                            {{ $movie->user->name }}
-                                        @endif
-                                    </a>
-                                </p>
-                            </div>
-                        </li>
-                    @endforeach
-                </ul>
+                <div id="movie-list">
+                    @include('movies.partials.movie_list', ['movies' => $movies, 'sort' => $sort])
+                </div>
             </div>
 
             <div class="w-1/5 pl-4">
-                <div class="flex flex-col space-y-4 pt-4">
-                    <p class="font-bold">Sort by:</p>
-                    <a href="?sort=likes"
-                       class="px-4 py-2 rounded {{ request('sort') == 'likes' ? 'bg-blue-500 text-white' : 'bg-gray-200' }}">Likes</a>
-                    <a href="?sort=hates"
-                       class="px-4 py-2 rounded {{ request('sort') == 'hates' ? 'bg-blue-500 text-white' : 'bg-gray-200' }}">Hates</a>
-                    <a href="?sort=latest"
-                       class="px-4 py-2 rounded {{ request('sort') == 'latest' ? 'bg-blue-500 text-white' : 'bg-gray-200' }}">Dates</a>
+                @auth
+                    <div class="text-center flex flex-col mt-4 rounded-xl outline outline-10 outline-black-700 shadow bg-green-400">
+                        <a href="{{ route('movies.create') }}" class="p-2 rounded text-white">New Movie</a>
+                    </div>
+                @endauth
+                <div class="px-2 py-2 text-center flex flex-col space-y-4 mt-4 rounded-xl outline outline-10 outline-black-700 shadow bg-blue-100">
+                        <p class="font-bold border-b-4 border-blue-500 pb-2">Sort by:</p>
+                        @foreach (['likes' => 'Likes', 'hates' => 'Hates', 'latest' => 'Dates'] as $sortKey => $sortLabel)
+                            <a href="{{ request()->url() }}?{{ http_build_query(array_merge(request()->query(), ['sort' => $sortKey])) }}"
+                               class="flex items-center justify-center gap-2 text-blue-600 px-2 pb-2 {{ in_array($sortKey, ['likes', 'hates']) ? 'border-b-4 border-blue-500' : '' }}">
+
+                                <span class="flex items-center justify-center">{{ $sortLabel }}</span>
+                                <div class="w-4 h-4 border-2 border-blue-500 flex items-center justify-center rounded-sm">
+                                    @if(request('sort', 'latest') == $sortKey)
+                                        <div class="w-2 h-2 bg-green-500 rounded-sm"></div>
+                                    @endif
+                                </div>
+
+                            </a>
+                        @endforeach
+
+                </div>
+                <div class="px-2 py-2 text-center flex flex-col space-y-4 mt-4 rounded-xl outline outline-10 outline-black-700 shadow">
+                    @auth
+                        <form method="POST" action="{{ route('logout') }}" class="inline">
+                            @csrf
+                            <button type="submit">Logout</button>
+                        </form>
+                    @endauth
                 </div>
             </div>
         </div>

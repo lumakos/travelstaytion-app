@@ -19,6 +19,10 @@ class MovieController extends Controller
 
         [$column, $direction] = $sortOptions[$sort] ?? $sortOptions['latest'];
 
+        // Counts total num of movies
+        $total_movies = Movie::all()->count();
+
+        // Gets first 20 movies
         $movies = Movie::with('user')
             ->withCount([
                 'votes as likes' => function ($query) {
@@ -31,7 +35,7 @@ class MovieController extends Controller
             ->orderBy($column, $direction)
             ->paginate(20);
 
-        return view('movies.index', compact('movies', 'sort'));
+        return view('movies.index', compact('movies', 'sort', 'total_movies'));
     }
 
     public function create()
@@ -55,8 +59,34 @@ class MovieController extends Controller
         return redirect()->route('movies.index');
     }
 
-    public function vote(Request $request)
+    public function userMovies(Request $request, $userId)
     {
+        $sort = $request->query('sort', 'latest');
 
+        $sortOptions = [
+            'latest' => ['created_at', 'desc'],
+            'likes' => ['likes', 'desc'],
+            'hates' => ['hates', 'desc'],
+        ];
+
+        [$column, $direction] = $sortOptions[$sort] ?? $sortOptions['latest'];
+
+        $total_movies = Movie::where('user_id', $userId)->count();
+
+        $movies = Movie::with('user')
+            ->where('user_id', $userId)
+            ->withCount([
+                'votes as likes' => function ($query) {
+                    $query->where('vote', 'like');
+                },
+                'votes as hates' => function ($query) {
+                    $query->where('vote', 'hate');
+                },
+            ])
+            ->orderBy($column, $direction)
+            ->paginate(20);
+
+        return view('movies.index', compact('movies', 'sort', 'total_movies'));
     }
+
 }
