@@ -6,6 +6,7 @@ use App\Models\Movie;
 use App\Models\Vote;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Redis;
 
 class VoteController extends Controller
 {
@@ -19,13 +20,19 @@ class VoteController extends Controller
             ->where('movie_id', $movie->id)
             ->first();
 
+        //dd($existingVote, $movie->id, Cache::get('user_vote_' . auth()->id() . '_' . $movie->id));
+
+
         if ($existingVote) {
             if ($existingVote->vote == $request->vote) {
+                Cache::forget('user_vote_' . auth()->id() . '_' . $existingVote->id);
                 $existingVote->delete();
             } else {
                 $existingVote->update(['vote' => $request->vote]);
             }
         } else {
+            //dd(1);
+            Cache::forget('user_vote_' . auth()->id() . '_' . $movie->id);
             Vote::create([
                 'user_id' => auth()->id(),
                 'movie_id' => $movie->id,
@@ -33,7 +40,16 @@ class VoteController extends Controller
             ]);
         }
 
-        Cache::put('user_vote_' . auth()->id() . '_' . $movie->id, $request->vote, now()->addDay());
+
+
+
+
+        // Clears movie cache
+        MovieController::clearMovieCache($movie->id);
+
+        $userId = auth()->id();
+        $cacheKey = "user_vote_{$userId}_{$movie->id}";
+        Cache::put($cacheKey, $request->vote, now()->addDay());
 
         return back();
     }
