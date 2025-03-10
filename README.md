@@ -1,4 +1,5 @@
 # Few words about the application
+
 A small project named MovieWorld. The application is a social sharing platform where users can share their 
 favorite movies of all time. Also, they can vote and sort the movies by likes, hates and created date.
 ---
