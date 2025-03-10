@@ -41,17 +41,23 @@ class MovieController extends Controller
 
     public function store(CreateMovieRequest $request)
     {
-        $movieDTO = new MovieDTO(auth()->id(), $request->title, $request->description);
+        try {
+            $movieDTO = new MovieDTO(auth()->id(), $request->title, $request->description);
 
-        Movie::create([
-            'user_id' => $movieDTO->userId,
-            'title' => $movieDTO->title,
-            'description' => $movieDTO->description,
-        ]);
+            Movie::create([
+                'user_id' => $movieDTO->userId,
+                'title' => $movieDTO->title,
+                'description' => $movieDTO->description,
+            ]);
 
-        $this->clearCache();
+            $this->clearCache();
 
-        return redirect()->route('movies.index');
+            return redirect()->route('movies.index');
+        } catch (\Exception $e) {
+            \Log::error('Error storing movie: ' . $e->getMessage());
+
+            return redirect()->route('movies.create')->with('error', 'There was an issue saving the movie.');
+        }
     }
 
     /**
@@ -67,51 +73,56 @@ class MovieController extends Controller
         $listMoviesKey = $userId ? "movies_{$sort}_page_{$page}_userid_{$userId}" : "movies_{$sort}_page_{$page}";
         $totalMoviesKey = $userId ? "movies_total_count_userid_{$userId}" : "movies_total_count";
 
-        if (Cache::has($listMoviesKey) && Cache::has($totalMoviesKey)) {
-            return new MovieListDTO(
-                Cache::get($listMoviesKey),
-                Cache::get($totalMoviesKey),
-                $sort
-            );
+        try {
+            if (Cache::has($listMoviesKey) && Cache::has($totalMoviesKey)) {
+                return new MovieListDTO(
+                    Cache::get($listMoviesKey),
+                    Cache::get($totalMoviesKey),
+                    $sort
+                );
+            }
+
+            $sortOptions = [
+                'latest' => ['created_at', 'desc'],
+                'likes' => ['likes', 'desc'],
+                'hates' => ['hates', 'desc'],
+            ];
+
+            [$column, $direction] = $sortOptions[$sort] ?? $sortOptions['latest'];
+
+            $query = Movie::with('user')
+                ->withCount([
+                    'votes as likes' => fn($q) => $q->where('vote', 'like'),
+                    'votes as hates' => fn($q) => $q->where('vote', 'hate'),
+                ])->orderBy($column, $direction);
+
+            if ($userId) {
+                $query->where('user_id', $userId);
+            }
+
+            $movies = $query->paginate(20);
+
+
+            // Get total movies
+            $totalMovies = $userId ? Movie::where('user_id', $userId)->count() : Movie::count();
+
+            // Cache sorting list of movies per page
+            Cache::put($listMoviesKey, $movies, now()->addMinutes(10));
+            // Cache total num of movies
+            Cache::put($totalMoviesKey, $totalMovies, now()->addMinutes(10));
+
+            // Store cache key of each movie
+            foreach ($movies as $movie) {
+                Redis::sadd("movie_cache_keys_{$movie->id}", $listMoviesKey);
+            }
+            //
+            Redis::sadd('movies_cache_keys', $listMoviesKey);
+
+            return new MovieListDTO($movies, $totalMovies, $sort);
+        } catch (\Exception $e) {
+            \Log::error('Error fetching movies: ' . $e->getMessage());
+            return new MovieListDTO([], 0, $sort);
         }
-
-        $sortOptions = [
-            'latest' => ['created_at', 'desc'],
-            'likes' => ['likes', 'desc'],
-            'hates' => ['hates', 'desc'],
-        ];
-
-        [$column, $direction] = $sortOptions[$sort] ?? $sortOptions['latest'];
-
-        $query = Movie::with('user')
-            ->withCount([
-                'votes as likes' => fn($q) => $q->where('vote', 'like'),
-                'votes as hates' => fn($q) => $q->where('vote', 'hate'),
-            ])->orderBy($column, $direction);
-
-        if ($userId) {
-            $query->where('user_id', $userId);
-        }
-
-        $movies = $query->paginate(20);
-
-
-        // Get total movies
-        $totalMovies = $userId ? Movie::where('user_id', $userId)->count() : Movie::count();
-
-        // Cache sorting list of movies per page
-        Cache::put($listMoviesKey, $movies, now()->addMinutes(10));
-        // Cache total num of movies
-        Cache::put($totalMoviesKey, $totalMovies, now()->addMinutes(10));
-
-        // Store cache key of each movie
-        foreach ($movies as $movie) {
-            Redis::sadd("movie_cache_keys_{$movie->id}", $listMoviesKey);
-        }
-        //
-        Redis::sadd('movies_cache_keys', $listMoviesKey);
-
-        return new MovieListDTO($movies, $totalMovies, $sort);
     }
 
     /**
