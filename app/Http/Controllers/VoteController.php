@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\CacheHelper;
 use App\Models\Movie;
 use App\Models\Vote;
 use Illuminate\Http\Request;
@@ -19,8 +20,8 @@ class VoteController extends Controller
 
         $existingVote = $movie->userGetVotes($userId);
 
-        // Clears movie's cache
-        MovieController::clearMovieCache($movie->id);
+        // Flush movie's cache key
+        CacheHelper::clearMovieCache($movie->id);
 
         if ($existingVote) {
             if ($existingVote->vote == $requestData['vote']) {
