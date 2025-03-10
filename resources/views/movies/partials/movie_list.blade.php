@@ -5,7 +5,7 @@
                 <div class="flex justify-between items-center">
                     <h2 class="text-xl font-semibold">{{ $movie->title }}</h2>
                     <p class="text-gray-800 text-sm">
-                        Posted {{ \Carbon\Carbon::parse($movie->created_at)->format('d/m/Y') }}</p>
+                        Posted {{ $movie->created_at_formatted }}</p>
                 </div>
 
                 <div>

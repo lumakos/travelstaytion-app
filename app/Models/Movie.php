@@ -8,6 +8,7 @@ use App\Models\Vote;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Carbon\Carbon;
 
 class Movie extends Model
 {
@@ -38,6 +39,11 @@ class Movie extends Model
     public function userVotes($userId)
     {
         return $this->votes()->where('user_id', $userId)->first();
+    }
+
+    public function getCreatedAtFormattedAttribute()
+    {
+        return Carbon::parse($this->created_at)->format('d/m/Y');
     }
 
     public function getUserVoteAttribute()
