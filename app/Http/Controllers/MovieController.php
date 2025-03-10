@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\CacheHelper;
+use App\Helpers\SortOptionsHelper;
 use App\Http\Requests\Movie\CreateMovieRequest;
 use App\Models\Movie;
+use App\Models\Vote;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Redis;
@@ -30,7 +33,6 @@ class MovieController extends Controller
         $data = $request->validated();
 
         try {
-
             Movie::create([
                 'user_id' => auth()->id(),
                 'title' => $data['title'],
@@ -70,40 +72,40 @@ class MovieController extends Controller
             }
 
             $sortOptions = [
-                'latest' => ['created_at', 'desc'],
-                'likes' => ['likes', 'desc'],
-                'hates' => ['hates', 'desc'],
+                SortOptionsHelper::LATEST => [SortOptionsHelper::CREATED_AT, 'desc'],
+                SortOptionsHelper::LIKES => [SortOptionsHelper::LIKES, 'desc'],
+                SortOptionsHelper::HATES => [SortOptionsHelper::HATES, 'desc'],
             ];
 
-            [$column, $direction] = $sortOptions[$sort] ?? $sortOptions['latest'];
+            [$column, $direction] = $sortOptions[$sort] ?? $sortOptions[SortOptionsHelper::LATEST];
 
             $query = Movie::with('user')
                 ->withCount([
-                    'votes as likes' => fn($q) => $q->where('vote', 'like'),
-                    'votes as hates' => fn($q) => $q->where('vote', 'hate'),
+                    'votes as likes' => fn($q) => $q->where('vote', Vote::LIKE_VOTE),
+                    'votes as hates' => fn($q) => $q->where('vote', Vote::HATE_VOTE),
                 ])->orderBy($column, $direction);
 
             if ($userId) {
                 $query->where('user_id', $userId);
             }
 
-            $movies = $query->paginate(20);
+            $movies = $query->paginate(Movie::PER_PAGE);
 
 
             // Get total movies
             $totalMovies = $userId ? Movie::where('user_id', $userId)->count() : Movie::count();
 
             // Cache sorting list of movies per page
-            Cache::put($listMoviesKey, $movies, now()->addMinutes(10));
+            Cache::put($listMoviesKey, $movies, CacheHelper::CACHE_DURATION);
             // Cache total num of movies
-            Cache::put($totalMoviesKey, $totalMovies, now()->addMinutes(10));
+            Cache::put($totalMoviesKey, $totalMovies, CacheHelper::CACHE_DURATION);
 
             // Store cache key of each movie
             foreach ($movies as $movie) {
                 Redis::sadd("movie_cache_keys_{$movie->id}", $listMoviesKey);
             }
             //
-            Redis::sadd('movies_cache_keys', $listMoviesKey);
+            Redis::sadd(CacheHelper::MOVIE_CACHE_KEY, $listMoviesKey);
 
             return compact('movies', 'totalMovies', 'sort');
         } catch (\Exception $e) {
@@ -120,7 +122,7 @@ class MovieController extends Controller
     private function clearCache(): void
     {
         // Get an array of all cache keys about 'movies_cache_keys' list
-        $cacheKeys = Redis::smembers('movies_cache_keys');
+        $cacheKeys = Redis::smembers(CacheHelper::MOVIE_CACHE_KEY);
 
         // Delete each cache key
         foreach ($cacheKeys as $key) {
@@ -128,6 +130,6 @@ class MovieController extends Controller
         }
 
         // Delete the 'movies_cache_keys' list of cache keys
-        Redis::del('movies_cache_keys');
+        Redis::del(CacheHelper::MOVIE_CACHE_KEY);
     }
 }

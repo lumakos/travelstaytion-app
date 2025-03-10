@@ -14,10 +14,10 @@
 
                 <div class="mt-4 flex justify-between items-center">
                     <p id="movie-stats">
-                        <span class="{{ $movie->user_vote == 'like' ? 'text-green-500' : 'text-gray-600' }}">
+                        <span class="{{ $movie->user_vote == \App\Models\Vote::LIKE_VOTE ? 'text-green-500' : 'text-gray-600' }}">
                             {{ $movie->likes }} likes
                         </span> |
-                        <span class="{{ $movie->user_vote == 'hate' ? 'text-red-500' : 'text-gray-600' }}">
+                        <span class="{{ $movie->user_vote == \App\Models\Vote::HATE_VOTE ? 'text-red-500' : 'text-gray-600' }}">
                             {{ $movie->hates }} hates
                         </span>
                     </p>
@@ -28,7 +28,7 @@
                                 <form action="{{ route('movies.vote', $movie->id) }}" method="POST">
                                     @csrf
                                     <input type="hidden" name="vote" value="like">
-                                    <button type="submit" class="px-2 py-1 rounded rounded-2xl {{ $movie->user_vote == 'like' ? 'bg-blue-500 text-white' : 'text-blue-500' }}">
+                                    <button type="submit" class="px-2 py-1 rounded rounded-2xl {{ $movie->user_vote == \App\Models\Vote::LIKE_VOTE ? 'bg-blue-500 text-white' : 'text-blue-500' }}">
                                         Like
                                     </button>
                                 </form>
@@ -38,7 +38,7 @@
                                 <form action="{{ route('movies.vote', $movie->id) }}" method="POST">
                                     @csrf
                                     <input type="hidden" name="vote" value="hate">
-                                    <button type="submit" class="px-2 py-1 rounded rounded-2xl {{ $movie->user_vote == 'hate' ? 'bg-blue-500 text-white' : 'text-blue-500' }}">
+                                    <button type="submit" class="px-2 py-1 rounded rounded-2xl {{ $movie->user_vote == \App\Models\Vote::HATE_VOTE ? 'bg-blue-500 text-white' : 'text-blue-500' }}">
                                         Hate
                                     </button>
                                 </form>

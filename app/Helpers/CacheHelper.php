@@ -7,6 +7,9 @@ use Illuminate\Support\Facades\Redis;
 
 class CacheHelper
 {
+    public const CACHE_DURATION = 86400; // one day
+    public const MOVIE_CACHE_KEY = 'movies_cache_keys';
+
     /**
      * Flush cache of a specific movie
      *

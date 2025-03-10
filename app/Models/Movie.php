@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Helpers\CacheHelper;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Vote;
@@ -13,6 +14,8 @@ use Carbon\Carbon;
 class Movie extends Model
 {
     use HasFactory;
+
+    public const PER_PAGE = 20;
 
     protected $fillable = ['user_id', 'title', 'description'];
 
@@ -28,12 +31,12 @@ class Movie extends Model
 
     public function likes()
     {
-        return $this->votes()->where('vote', 'like');
+        return $this->votes()->where('vote', Vote::LIKE_VOTE);
     }
 
     public function hates()
     {
-        return $this->votes()->where('vote', 'hate');
+        return $this->votes()->where('vote', Vote::HATE_VOTE);
     }
 
     public function userVotes($userId)
@@ -64,7 +67,7 @@ class Movie extends Model
 
         $vote = $userVotes[$this->id] ?? null;
 
-        Cache::put($cacheKey, $vote, now()->addDay());
+        Cache::put($cacheKey, $vote, CacheHelper::CACHE_DURATION);
 
         return $vote;
     }

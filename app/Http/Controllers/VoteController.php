@@ -39,7 +39,7 @@ class VoteController extends Controller
                 ]);
             }
 
-            Cache::put("user_{$userId}_movie_{$movie->id}_vote", $requestData['vote'], now()->addDay());
+            Cache::put("user_{$userId}_movie_{$movie->id}_vote", $requestData['vote'], CacheHelper::CACHE_DURATION);
 
             return back();
         } catch (\Exception $e) {
