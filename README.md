@@ -1,13 +1,12 @@
 # Few words about the application
-
-This is a **RESTful API** built with **Laravel 10**, featuring **Sanctum authentication** and **MongoDB** as the database. It provides **lead management** functionality and integrates with **ActiveCampaign** to synchronize contacts seamlessly.
-
+A small project named MovieWorld. The application is a social sharing platform where users can share their 
+favorite movies of all time. Also, they can vote and sort the movies by likes, hates and created date.
 ---
 
 ## Features
 
-- **User Authentication** with **Laravel Sanctum** (Register).
-- **Lead Management API**: CRUD endpoints for **creating, retrieving, updating, and deleting leads**.
+- **User Authentication** with **Laravel Breeze**.
+- **Movie List**: Actions for **creating, voting, sorting leads**.
 - **Data Validation** and **secure password storage**.
 - **Logging & Error Handling** to capture failed operations.
 
@@ -17,14 +16,13 @@ This is a **RESTful API** built with **Laravel 10**, featuring **Sanctum authent
 
 - **Laravel 10** (Backend Framework)
 - **MySQL** (SQL Database)
-- **Laravel Sanctum** (Token-based Authentication)
+- **Redis** (Caching)
+- **Laravel Breeze** (Token-based Authentication)
 - **Laravel Queues & Horizon** (Job Processing)
 
 ---
 
 ## Installation & Setup
-
-<u>**Note**</u>: You can find the <u>learnworlds-assignment.postman_collection.json</u> in the project root, which contains all the HTTP requests for this assignment. Download the file, import it into Postman, and run the requests.
 
 ## 1. Clone the Repository
 ```
@@ -66,29 +64,24 @@ sudo chmod -R 755 travelstaytion-app
 ./vendor/bin/sail up -d --build
 ```
 
+## 8. Run Tests
+```
+./vendor/bin/sail artisan test
+```
+
 #### Running host
 ```
 http://localhost:100
 ```
 
-#### Get Access Token
+### Database Seeder
 ```
-email: test@example.com
-password: password
-```
-
-
-## 8. Run Horizon
-```
-./vendor/bin/sail artisan horizon
+./vendor/bin/sail db:seed
 ```
 
-## 9. Run Queue Worker
+### Flush Redis
 ```
-./vendor/bin/sail artisan queue:work
-```
+./vendor/bin/sail redis
 
-## 10. Run Tests
-```
-./vendor/bin/sail artisan test
+FLUSHDB
 ```
