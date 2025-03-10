@@ -53,12 +53,12 @@ class MovieController extends Controller
         $sort = $request->query('sort', 'latest');
         $page = $request->query('page', 1);
 
-        $cacheKeyPrefix = $userId ? "movies_{$sort}_page_{$page}_userid_{$userId}" : "movies_{$sort}_page_{$page}";
+        $listMoviesKey = $userId ? "movies_{$sort}_page_{$page}_userid_{$userId}" : "movies_{$sort}_page_{$page}";
         $totalMoviesKey = $userId ? "movies_total_count_userid_{$userId}" : "movies_total_count";
 
-        if (Cache::has($cacheKeyPrefix) && Cache::has($totalMoviesKey)) {
+        if (Cache::has($listMoviesKey) && Cache::has($totalMoviesKey)) {
             return [
-                'movies' => Cache::get($cacheKeyPrefix),
+                'movies' => Cache::get($listMoviesKey),
                 'totalMovies' => Cache::get($totalMoviesKey),
                 'sort' => $sort
             ];
@@ -83,19 +83,20 @@ class MovieController extends Controller
         }
 
         $movies = $query->paginate(20);
+        // Get total movies
         $totalMovies = $userId ? Movie::where('user_id', $userId)->count() : Movie::count();
 
         // Cache sorting list of movies per page
-        Cache::put($cacheKeyPrefix, $movies, now()->addMinutes(10));
+        Cache::put($listMoviesKey, $movies, now()->addMinutes(10));
         // Cache total num of movies
         Cache::put($totalMoviesKey, $totalMovies, now()->addMinutes(10));
 
         // Store cache key of each movie
         foreach ($movies as $movie) {
-            Redis::sadd("movie_cache_keys_{$movie->id}", $cacheKeyPrefix);
+            Redis::sadd("movie_cache_keys_{$movie->id}", $listMoviesKey);
         }
         //
-        Redis::sadd('movies_cache_keys', $cacheKeyPrefix);
+        Redis::sadd('movies_cache_keys', $listMoviesKey);
 
         return compact('movies', 'totalMovies', 'sort');
     }

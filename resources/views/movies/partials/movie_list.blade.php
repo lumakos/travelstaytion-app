@@ -8,7 +8,9 @@
                         Posted {{ \Carbon\Carbon::parse($movie->created_at)->format('d/m/Y') }}</p>
                 </div>
 
-                <p class="text-gray-600">{{ $movie->description }}</p>
+                <div>
+                    <p class="text-gray-600">{{ $movie->description }}</p>
+                </div>
 
                 <div class="mt-4 flex justify-between items-center">
                     <p id="movie-stats">
