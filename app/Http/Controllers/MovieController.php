@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\DTOs\MovieDTO;
+use App\DTOs\MovieListDTO;
+use App\Http\Requests\Movie\CreateMovieRequest;
 use App\Models\Movie;
-use App\Models\Vote;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Redis;
@@ -12,12 +14,24 @@ class MovieController extends Controller
 {
     public function index(Request $request)
     {
-        return view('movies.index', $this->getMovies($request));
+        $moviesDTO = $this->getMovies($request);
+
+        return view('movies.index', [
+            'movies' => $moviesDTO->movies,
+            'totalMovies' => $moviesDTO->totalMovies,
+            'sort' => $moviesDTO->sort,
+        ]);
     }
 
     public function userMovies(Request $request, $userId)
     {
-        return view('movies.index', $this->getMovies($request, $userId));
+        $moviesDTO = $this->getMovies($request, $userId);
+
+        return view('movies.index', [
+            'movies' => $moviesDTO->movies,
+            'totalMovies' => $moviesDTO->totalMovies,
+            'sort' => $moviesDTO->sort,
+        ]);
     }
 
     public function create()
@@ -25,17 +39,14 @@ class MovieController extends Controller
         return view('movies.create');
     }
 
-    public function store(Request $request)
+    public function store(CreateMovieRequest $request)
     {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-        ]);
+        $movieDTO = new MovieDTO(auth()->id(), $request->title, $request->description);
 
         Movie::create([
-            'user_id' => auth()->id(),
-            'title' => $request->title,
-            'description' => $request->description,
+            'user_id' => $movieDTO->userId,
+            'title' => $movieDTO->title,
+            'description' => $movieDTO->description,
         ]);
 
         $this->clearCache();
@@ -48,7 +59,7 @@ class MovieController extends Controller
      * @param int|null $userId
      * @return array
      */
-    private function getMovies(Request $request, ?int $userId = null): array
+    private function getMovies(Request $request, ?int $userId = null): MovieListDTO
     {
         $sort = $request->query('sort', 'latest');
         $page = $request->query('page', 1);
@@ -57,11 +68,11 @@ class MovieController extends Controller
         $totalMoviesKey = $userId ? "movies_total_count_userid_{$userId}" : "movies_total_count";
 
         if (Cache::has($listMoviesKey) && Cache::has($totalMoviesKey)) {
-            return [
-                'movies' => Cache::get($listMoviesKey),
-                'totalMovies' => Cache::get($totalMoviesKey),
-                'sort' => $sort
-            ];
+            return new MovieListDTO(
+                Cache::get($listMoviesKey),
+                Cache::get($totalMoviesKey),
+                $sort
+            );
         }
 
         $sortOptions = [
@@ -83,6 +94,8 @@ class MovieController extends Controller
         }
 
         $movies = $query->paginate(20);
+
+
         // Get total movies
         $totalMovies = $userId ? Movie::where('user_id', $userId)->count() : Movie::count();
 
@@ -98,7 +111,7 @@ class MovieController extends Controller
         //
         Redis::sadd('movies_cache_keys', $listMoviesKey);
 
-        return compact('movies', 'totalMovies', 'sort');
+        return new MovieListDTO($movies, $totalMovies, $sort);
     }
 
     /**

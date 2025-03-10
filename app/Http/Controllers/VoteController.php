@@ -3,22 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\CacheHelper;
+use App\Http\Requests\Movie\VoteRequest;
 use App\Models\Movie;
 use App\Models\Vote;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Redis;
 
 class VoteController extends Controller
 {
-    public function vote(Request $request, Movie $movie)
+    public function vote(VoteRequest $request, Movie $movie)
     {
         $userId = auth()->id();
-        $requestData = $request->validate([
-            'vote' => 'required|in:like,hate',
-        ]);
+        $requestData = $request->validated();
 
-        $existingVote = $movie->userGetVotes($userId);
+        $existingVote = $movie->userVotes($userId);
 
         // Flush movie's cache key
         CacheHelper::clearMovieCache($movie->id);

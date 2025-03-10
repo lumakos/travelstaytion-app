@@ -35,7 +35,7 @@ class Movie extends Model
         return $this->votes()->where('vote', 'hate');
     }
 
-    public function userGetVotes($userId)
+    public function userVotes($userId)
     {
         return $this->votes()->where('user_id', $userId)->first();
     }
