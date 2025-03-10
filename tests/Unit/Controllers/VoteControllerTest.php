@@ -21,13 +21,13 @@ class VoteControllerTest extends TestCase
         $movie = Movie::factory()->create();
 
         $this->actingAs($user)
-            ->post(route('movies.vote', $movie), ['vote' => 'like'])
+            ->post(route('movies.vote', $movie), ['vote' => Vote::LIKE_VOTE])
             ->assertRedirect();
 
         $this->assertDatabaseHas('votes', [
             'user_id' => $user->id,
             'movie_id' => $movie->id,
-            'vote' => 'like',
+            'vote' => Vote::LIKE_VOTE,
         ]);
     }
 
@@ -37,13 +37,13 @@ class VoteControllerTest extends TestCase
         $movie = Movie::factory()->create();
 
         $this->actingAs($user)
-            ->post(route('movies.vote', $movie), ['vote' => 'hate'])
+            ->post(route('movies.vote', $movie), ['vote' => Vote::HATE_VOTE])
             ->assertRedirect();
 
         $this->assertDatabaseHas('votes', [
             'user_id' => $user->id,
             'movie_id' => $movie->id,
-            'vote' => 'hate',
+            'vote' => Vote::HATE_VOTE,
         ]);
     }
 
@@ -51,16 +51,16 @@ class VoteControllerTest extends TestCase
     {
         $user = User::factory()->create();
         $movie = Movie::factory()->create();
-        $vote = Vote::create(['user_id' => $user->id, 'movie_id' => $movie->id, 'vote' => 'like']);
+        $vote = Vote::create(['user_id' => $user->id, 'movie_id' => $movie->id, 'vote' => Vote::LIKE_VOTE]);
 
         $this->actingAs($user)
-            ->post(route('movies.vote', $movie), ['vote' => 'hate'])
+            ->post(route('movies.vote', $movie), ['vote' => Vote::HATE_VOTE])
             ->assertRedirect();
 
         $this->assertDatabaseHas('votes', [
             'user_id' => $user->id,
             'movie_id' => $movie->id,
-            'vote' => 'hate',
+            'vote' => Vote::HATE_VOTE,
         ]);
     }
 
@@ -68,10 +68,10 @@ class VoteControllerTest extends TestCase
     {
         $user = User::factory()->create();
         $movie = Movie::factory()->create();
-        $vote = Vote::create(['user_id' => $user->id, 'movie_id' => $movie->id, 'vote' => 'like']);
+        $vote = Vote::create(['user_id' => $user->id, 'movie_id' => $movie->id, 'vote' => Vote::LIKE_VOTE]);
 
         $this->actingAs($user)
-            ->post(route('movies.vote', $movie), ['vote' => 'like'])
+            ->post(route('movies.vote', $movie), ['vote' => Vote::LIKE_VOTE])
             ->assertRedirect();
 
         $this->assertDatabaseMissing('votes', [
@@ -89,7 +89,7 @@ class VoteControllerTest extends TestCase
         Cache::shouldReceive('put')->once();
 
         $this->actingAs($user)
-            ->post(route('movies.vote', $movie), ['vote' => 'like'])
+            ->post(route('movies.vote', $movie), ['vote' => Vote::LIKE_VOTE])
             ->assertRedirect();
     }
 
