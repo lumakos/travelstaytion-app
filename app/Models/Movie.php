@@ -35,22 +35,28 @@ class Movie extends Model
         return $this->votes()->where('vote', 'hate');
     }
 
+    public function userGetVotes($userId)
+    {
+        return $this->votes()->where('user_id', $userId)->first();
+    }
+
     public function getUserVoteAttribute()
     {
         $userId = Auth::id();
-
-        $cacheKey = "user_vote_{$userId}_{$this->id}";
+        $cacheKey = "user_{$userId}_movie_{$this->id}_vote";
 
         if (Cache::has($cacheKey)) {
-            //dd($cacheKey, Cache::get($cacheKey));
             return Cache::get($cacheKey);
         }
 
-        $vote = $this->votes()
-            ->where('user_id', $userId)
-            ->select('vote')
-            ->first()
-            ->vote ?? null;
+        // Static array to hold user's votes
+        static $userVotes = null;
+
+        if ($userVotes === null) {
+            $userVotes = Vote::where('user_id', $userId)->pluck('vote', 'movie_id');
+        }
+
+        $vote = $userVotes[$this->id] ?? null;
 
         Cache::put($cacheKey, $vote, now()->addDay());
 

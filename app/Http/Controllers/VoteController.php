@@ -12,44 +12,35 @@ class VoteController extends Controller
 {
     public function vote(Request $request, Movie $movie)
     {
-        $request->validate([
+        $userId = auth()->id();
+        $requestData = $request->validate([
             'vote' => 'required|in:like,hate',
         ]);
 
-        $existingVote = Vote::where('user_id', auth()->id())
-            ->where('movie_id', $movie->id)
-            ->first();
+        $existingVote = $movie->userGetVotes($userId);
 
-        //dd($existingVote, $movie->id, Cache::get('user_vote_' . auth()->id() . '_' . $movie->id));
-
+        // Clears movie's cache
+        MovieController::clearMovieCache($movie->id);
 
         if ($existingVote) {
-            if ($existingVote->vote == $request->vote) {
-                Cache::forget('user_vote_' . auth()->id() . '_' . $existingVote->id);
+            if ($existingVote->vote == $requestData['vote']) {
+                Cache::forget("user_{$userId}_movie_{$existingVote->movie_id}_vote");
                 $existingVote->delete();
+
+                return back();
             } else {
-                $existingVote->update(['vote' => $request->vote]);
+                $existingVote->update(['vote' => $requestData['vote']]);
             }
         } else {
-            //dd(1);
-            Cache::forget('user_vote_' . auth()->id() . '_' . $movie->id);
+            Cache::forget("user_{$userId}_movie_{$movie->id}_vote");
             Vote::create([
                 'user_id' => auth()->id(),
                 'movie_id' => $movie->id,
-                'vote' => $request->vote,
+                'vote' => $requestData['vote'],
             ]);
         }
 
-
-
-
-
-        // Clears movie cache
-        MovieController::clearMovieCache($movie->id);
-
-        $userId = auth()->id();
-        $cacheKey = "user_vote_{$userId}_{$movie->id}";
-        Cache::put($cacheKey, $request->vote, now()->addDay());
+        Cache::put("user_{$userId}_movie_{$movie->id}_vote", $requestData['vote'], now()->addDay());
 
         return back();
     }

@@ -10,139 +10,6 @@ use Illuminate\Support\Facades\Redis;
 
 class MovieController extends Controller
 {
-//    public function index(Request $request)
-//    {
-//        $sort = $request->query('sort', 'latest');
-//        $page = $request->query('page', 1);
-//
-//        // Init cache keys
-//        $moviesPerPageKey = "movies_{$sort}_page_{$page}";
-//        $totalMoviesKey = "movies_total_count";
-//
-//        // Checks if listing and total num of movies are cached
-//        if (Cache::has($moviesPerPageKey) && Cache::has($totalMoviesKey)) {
-//            $movies = Cache::get($moviesPerPageKey);
-//            $totalMovies = Cache::get($totalMoviesKey);
-//
-//            return view('movies.index', compact('movies', 'sort', 'totalMovies'));
-//        }
-//
-//        $sortOptions = [
-//            'latest' => ['created_at', 'desc'],
-//            'likes' => ['likes', 'desc'],
-//            'hates' => ['hates', 'desc'],
-//        ];
-//
-//        [$column, $direction] = $sortOptions[$sort] ?? $sortOptions['latest'];
-//
-//        // Counts total num of movies
-//        $totalMovies = Movie::count();
-//
-//        // Gets first 20 movies
-//        $movies = Movie::with('user')
-//            ->withCount([
-//                'votes as likes' => function ($query) {
-//                    $query->where('vote', 'like');
-//                },
-//                'votes as hates' => function ($query) {
-//                    $query->where('vote', 'hate');
-//                },
-//            ])
-//            ->orderBy($column, $direction)
-//            ->paginate(20);
-//
-//        // Store current movies
-//        Cache::put($moviesPerPageKey, $movies, now()->addMinutes(10));
-//        // Store total number of movies
-//        Cache::put($totalMoviesKey, $totalMovies, now()->addMinutes(10));
-//
-//        // Store cache key in a list of unique keys
-//        Redis::sadd('movies_cache_keys', $moviesPerPageKey);
-//
-//        return view('movies.index', compact('movies', 'sort', 'totalMovies'));
-//    }
-//
-//    public function create()
-//    {
-//        return view('movies.create');
-//    }
-//
-//    public function store(Request $request)
-//    {
-//        $request->validate([
-//            'title' => 'required|string|max:255',
-//            'description' => 'required|string',
-//        ]);
-//
-//        Movie::create([
-//            'user_id' => auth()->id(),
-//            'title' => $request->title,
-//            'description' => $request->description,
-//        ]);
-//
-//        // Get all cache keys about movie list
-//        $cacheKeys = Redis::smembers('movies_cache_keys');
-//        // Delete all of them
-//        foreach ($cacheKeys as $key) {
-//            Cache::forget($key);
-//        }
-//        // Delete the list of cache keys
-//        Redis::del('movies_cache_keys');
-//
-//        return redirect()->route('movies.index');
-//    }
-//
-//    public function userMovies(Request $request, $userId)
-//    {
-//        $sort = $request->query('sort', 'latest');
-//        $page = $request->query('page', 1);
-//
-//        // Init cache keys
-//        $moviesPerUserIdKey = "movies_{$sort}_page_{$page}_userid_{$userId}";
-//        $totalMoviesPerUserKey = "movies_total_count_userid_{$userId}";
-//
-//        // Checks if listing and total num of movies are cached
-//        if (Cache::has($moviesPerUserIdKey) && Cache::has($totalMoviesPerUserKey)) {
-//            $movies = Cache::get($moviesPerUserIdKey);
-//            $totalMovies = Cache::get($totalMoviesPerUserKey);
-//
-//            return view('movies.index', compact('movies', 'sort', 'totalMovies'));
-//        }
-//
-//        $sortOptions = [
-//            'latest' => ['created_at', 'desc'],
-//            'likes' => ['likes', 'desc'],
-//            'hates' => ['hates', 'desc'],
-//        ];
-//
-//        [$column, $direction] = $sortOptions[$sort] ?? $sortOptions['latest'];
-//
-//        $totalMovies = Movie::where('user_id', $userId)->count();
-//
-//        $movies = Movie::with('user')
-//            ->where('user_id', $userId)
-//            ->withCount([
-//                'votes as likes' => function ($query) {
-//                    $query->where('vote', 'like');
-//                },
-//                'votes as hates' => function ($query) {
-//                    $query->where('vote', 'hate');
-//                },
-//            ])
-//            ->orderBy($column, $direction)
-//            ->paginate(20);
-//
-//        // Store current movies
-//        Cache::put($moviesPerUserIdKey, $movies, now()->addMinutes(10));
-//        // Store total number of movies
-//        Cache::put($totalMoviesPerUserKey, $totalMovies, now()->addMinutes(10));
-//
-//        // Store cache key in a list of unique keys
-//        Redis::sadd('movies_cache_keys', $moviesPerUserIdKey);
-//
-//        return view('movies.index', compact('movies', 'sort', 'totalMovies'));
-//    }
-
     public function index(Request $request)
     {
         return view('movies.index', $this->getMovies($request));
@@ -218,14 +85,16 @@ class MovieController extends Controller
         $movies = $query->paginate(20);
         $totalMovies = $userId ? Movie::where('user_id', $userId)->count() : Movie::count();
 
-        // Store data to cache
+        // Cache sorting list of movies per page
         Cache::put($cacheKeyPrefix, $movies, now()->addMinutes(10));
+        // Cache total num of movies
         Cache::put($totalMoviesKey, $totalMovies, now()->addMinutes(10));
 
         // Store cache key of each movie
         foreach ($movies as $movie) {
             Redis::sadd("movie_cache_keys_{$movie->id}", $cacheKeyPrefix);
         }
+        //
         Redis::sadd('movies_cache_keys', $cacheKeyPrefix);
 
         return compact('movies', 'totalMovies', 'sort');
@@ -270,5 +139,4 @@ class MovieController extends Controller
         // Delete the 'movies_cache_keys' list of cache keys
         Redis::del('movies_cache_keys');
     }
-
 }
