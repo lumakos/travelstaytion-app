@@ -80,7 +80,7 @@ class MovieController extends Controller
             return compact('movies', 'totalMovies', 'sort');
         } catch (\Exception $e) {
             \Log::error('Error fetching movies: ' . $e->getMessage());
-            return compact([], 0, $sort);
+            return compact([], [], $sort);
         }
     }
 
