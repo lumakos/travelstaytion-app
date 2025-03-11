@@ -1,8 +1,9 @@
 ## Few words about the application
 
->A small project named MovieWorld. The application is a social sharing platform where users can share their 
-favorite movies of all time. Also, they can vote and sort the movies by likes, hates and created date.
+>MovieWorld is a social sharing platform where users can showcase their all-time favorite movies. Users can vote 
+on movies, sort them by likes, dislikes, or creation date, and engage with the community.
 
+>Sign up to add your own movie and join the movie list!
 ---
 
 ## Features
