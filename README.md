@@ -3,7 +3,10 @@
 >MovieWorld is a social sharing platform where users can showcase their all-time favorite movies. Users can vote 
 on movies, sort them by likes, dislikes, or creation date, and engage with the community.
 
->Sign up to add your own movie and join the movie list!
+>Sign up, if you do not own an account, of login to add your own movie and join the movie list!
+
+> To enhance performance and minimize requests, Redis cache stores the movie list, sorting and voting data. When a new movie 
+is added, the cache is cleared, triggering fresh data retrieval from the database.Also, the same happens in case of voting. 
 ---
 
 ## Features
