@@ -37,17 +37,17 @@ cd travelstaytion-app
 composer install
 ```
 
-## 3. Build and start the app
-```
-./vendor/bin/sail up -d --build
-```
-
-## 4. Copy envs
+## 3. Copy envs
 ```
 cp .env.example .env
 ```
 
-## 5. Run migrtions
+## 4. Build and start the app
+```
+./vendor/bin/sail up -d --build
+```
+
+## 5. Run migrations and Seed database with 30movies
 ```
 ./vendor/bin/sail artisan migrate --seed
 ```
@@ -56,14 +56,20 @@ cp .env.example .env
 ```
 ./vendor/bin/sail artisan key:generate
 ```
+
+## 7. 
+```
+npm install && npm run dev
+```
+
 #### In case of permission issues, run
 ```
 sudo chmod -R 755 travelstaytion-app
 ```
 
-## 7. Re-run the app
+## 7. Re-run the app && Clear Cache
 ```
-./vendor/bin/sail up -d --build
+./vendor/bin/sail up -d --build && ./vendor/bin/sail artisan optimize:clear
 ```
 
 ## 8. Run Tests
@@ -75,10 +81,16 @@ sudo chmod -R 755 travelstaytion-app
 ```
 http://localhost:100
 ```
+## Commands
 
 ### Database Seeder
 ```
 ./vendor/bin/sail db:seed
+```
+
+### Clear Laravel Cache
+```
+./vendor/bin/sail artisan optimize:clear
 ```
 
 ### Flush Redis
