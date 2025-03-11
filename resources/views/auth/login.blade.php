@@ -44,4 +44,5 @@
             </x-primary-button>
         </div>
     </form>
+    <a href="{{ url()->previous() }}" class="w-full bg-gray-400 text-white py-2 rounded block text-center mt-2">Back</a>
 </x-guest-layout>

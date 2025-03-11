@@ -10,6 +10,7 @@
                 <textarea name="description" placeholder="Description" class="w-full border rounded p-2 mb-2" required></textarea>
                 <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded">Save</button>
             </form>
+            <a href="{{ url()->previous() }}" class="w-full bg-gray-400 text-white py-2 rounded block text-center mt-2">Back</a>
         </div>
     </div>
 @endsection
