@@ -57,22 +57,22 @@ cp .env.example .env
 ./vendor/bin/sail artisan key:generate
 ```
 
-## 7. 
+## 7. Installing Dependencies & Starting Development Server
 ```
 npm install && npm run dev
 ```
 
-#### In case of permission issues, run
+#### In case of permission issues in Storage folder, run
 ```
-sudo chmod -R 755 travelstaytion-app
+sudo chmod -R 755 storage
 ```
 
-## 7. Re-run the app && Clear Cache
+## 8. Re-run the app && Clear Cache
 ```
 ./vendor/bin/sail up -d --build && ./vendor/bin/sail artisan optimize:clear
 ```
 
-## 8. Run Tests
+## 9. Run Tests
 ```
 ./vendor/bin/sail artisan test
 ```
