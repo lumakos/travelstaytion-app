@@ -17,7 +17,9 @@ return new class extends Migration
             $table->foreignId('movie_id')->constrained()->onDelete('cascade');
             $table->enum('vote', ['like', 'hate']);
             $table->timestamps();
+
             $table->unique(['user_id', 'movie_id']);
+            $table->index(['movie_id', 'vote']);
         });
     }
 
@@ -26,6 +28,11 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('votes', function (Blueprint $table) {
+            $table->dropForeign(['movie_id']);
+            $table->dropForeign(['user_id']);
+            $table->dropIndex(['movie_id', 'vote']);
+        });
         Schema::dropIfExists('votes');
     }
 };

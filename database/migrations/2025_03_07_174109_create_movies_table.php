@@ -17,6 +17,8 @@ return new class extends Migration
             $table->string('title');
             $table->text('description');
             $table->timestamps();
+
+            $table->index(['created_at', 'id']);
         });
     }
 
@@ -25,6 +27,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('movies', function (Blueprint $table) {
+            $table->dropForeign(['user_id']);
+            $table->dropIndex(['created_at', 'id']);
+        });
         Schema::dropIfExists('movies');
     }
 };

@@ -118,7 +118,8 @@ class MovieController extends Controller
                 'votes as likes' => fn($q) => $q->where('vote', Vote::LIKE_VOTE),
                 'votes as hates' => fn($q) => $q->where('vote', Vote::HATE_VOTE),
             ])
-            ->orderBy($sortOptions[0], $sortOptions[1]);
+            ->orderBy($sortOptions[0], $sortOptions[1])
+            ->orderBy('movies.id', $sortOptions[1]);
 
         if ($userId) {
             $query->where('user_id', $userId);
