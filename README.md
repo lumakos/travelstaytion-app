@@ -30,7 +30,6 @@ pagination to efficiently manage real-time data updates and modifications.
 - **MySQL** (SQL Database)
 - **Redis** (Caching)
 - **Laravel Breeze** (Token-based Authentication)
-- **Laravel Queues & Horizon** (Job Processing)
 
 ---
 
