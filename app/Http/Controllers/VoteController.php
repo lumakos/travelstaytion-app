@@ -8,6 +8,11 @@ use App\Models\Movie;
 
 class VoteController extends Controller
 {
+    /**
+     * @param VoteRequest $request
+     * @param Movie $movie
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function vote(VoteRequest $request, Movie $movie)
     {
         $userId = auth()->id();

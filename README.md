@@ -1,12 +1,18 @@
 ## Few words about the application
 
->MovieWorld is a social sharing platform where users can showcase their all-time favorite movies. Users can vote 
+MovieWorld is a social sharing platform where users can showcase their all-time favorite movies. Users can vote
 on movies, sort them by likes, dislikes, or creation date, and engage with the community.
 
->Sign up, if you do not own an account, of login to add your own movie and join the movie list!
+Sign up, if you do not own an account, or login to add your own movie and join the movie list!
 
-> To enhance performance and minimize requests, Redis cache stores the movie list, sorting and voting data. When a new movie 
-is added, the cache is cleared, triggering fresh data retrieval from the database.Also, the same happens in case of voting. 
+To enhance performance and minimize requests, Redis cache stores the movie list, sorting and voting data. When a new movie
+is added, the cache is cleared, triggering fresh data retrieval from the database.Also, the same happens in case of voting.
+
+The voting system uses synchronous events to simplify functionality and make testing easier for the Travelstaytion team.
+If we need to process a large volume of data, we can implement asynchronous events and queue workers for scalability.
+However, for now, I am keeping it as simple as possible. Additionally, we can use cursor pagination instead of offset
+pagination to efficiently manage real-time data updates and modifications.
+
 ---
 
 ## Features
@@ -71,7 +77,7 @@ npm install && npm run dev
 sudo chmod -R 755 storage
 ```
 
-## 8. Re-run the app && Clear Cache
+## 8. Open new tab and Re-run the app && Clear Cache
 ```
 ./vendor/bin/sail up -d --build && ./vendor/bin/sail artisan optimize:clear
 ```
@@ -103,3 +109,5 @@ http://localhost:100
 
 FLUSHDB
 ```
+
+### Thank you for your time and the opportunity to complete this assignment. I am available for any questions you may have.
