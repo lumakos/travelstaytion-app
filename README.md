@@ -56,7 +56,7 @@ cp .env.example .env
 ./vendor/bin/sail up -d --build
 ```
 
-## 5. Run migrations and Seed database with 30movies
+## 5. Run migrations and Seed database with 30movies and 1user
 ```
 ./vendor/bin/sail artisan migrate --seed
 ```
@@ -66,24 +66,14 @@ cp .env.example .env
 ./vendor/bin/sail artisan key:generate
 ```
 
-## 7. Installing Dependencies & Starting Development Server
-```
-npm install && npm run dev
-```
-
-#### In case of permission issues in Storage folder, run
-```
-sudo chmod -R 755 storage
-```
-
-## 8. Open new tab and Re-run the app && Clear Cache
+## 7. Re-run the app && Clear Cache
 ```
 ./vendor/bin/sail up -d --build && ./vendor/bin/sail artisan optimize:clear
 ```
 
-## 9. Run Tests
+## 8. Installing Dependencies & Starting Development Server
 ```
-./vendor/bin/sail artisan test
+npm install && npm run dev
 ```
 
 #### Running host
@@ -107,6 +97,16 @@ http://localhost:100
 ./vendor/bin/sail redis
 
 FLUSHDB
+```
+
+## Run Tests
+```
+./vendor/bin/sail artisan test
+```
+
+#### In case of permission issues in Storage folder, run
+```
+sudo chmod -R 755 storage/
 ```
 
 ### Thank you for your time and the opportunity to complete this assignment. I am available for any questions you may have.
